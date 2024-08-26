@@ -14,9 +14,10 @@ async function startApolloServer() {
 
 	server.applyMiddleware({ app });
 
-	app.listen({ port: 4000 }, () =>
+	const PORT = process.env.PORT || 4000;
+	app.listen(PORT, () =>
 		console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
 	);
 }
 
-startApolloServer();
+startApolloServer().catch(err => console.error('Failed to start server:', err));
