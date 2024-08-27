@@ -20,14 +20,24 @@ export const resolvers = {
 			_: any,
 			{ eventId, userData }: { eventId: string; userData: UserInput }
 		) => {
-			const success = await createRegistration(eventId, userData);
-			if (success) {
-				await sendSMS(
-					userData.phone,
-					`You have successfully registered for the event!`
-				);
+			try {
+				const success = await createRegistration(eventId, userData);
+				if (success) {
+					try {
+						await sendSMS(
+							userData.phone,
+							`You have successfully registered for the event!`
+						);
+					} catch (error) {
+						console.error('Failed to send SMS:', error);
+						// You might want to log this or handle it in some way, but don't fail the registration
+					}
+				}
+				return success;
+			} catch (error) {
+				console.error('Failed to register for event:', error);
+				throw new Error('Failed to register for event');
 			}
-			return success;
 		},
 	},
 };

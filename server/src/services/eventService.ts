@@ -3,13 +3,25 @@ import { pool } from '../config/db';
 import { redisClient } from '../config/redis';
 
 export async function getEvents(): Promise<Event[]> {
-	const cachedEvents = await redisClient.get('events');
-	if (cachedEvents) {
-		return JSON.parse(cachedEvents);
+	try {
+		const cachedEvents = await redisClient.get('events');
+		if (cachedEvents) {
+			return JSON.parse(cachedEvents);
+		}
+	} catch (error) {
+		console.error('Redis get error:', error);
 	}
 
 	const { rows } = await pool.query('SELECT * FROM events');
-	await redisClient.set('events', JSON.stringify(rows), { EX: 3600 }); // Cache for 1 hour
+
+	try {
+		await redisClient.set('events', JSON.stringify(rows), {
+			EX: 3600, // Cache for 1 hour
+		});
+	} catch (error) {
+		console.error('Redis set error:', error);
+	}
+
 	return rows;
 }
 
